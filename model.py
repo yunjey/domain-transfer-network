@@ -93,7 +93,7 @@ class DTN(object):
             
             # spatial size for convolution
             s = self.output_size
-            s2, s4, s8, s16 = s/2, s/4, s/8, s/16     # 32, 16, 8, 4
+            s2, s4, s8, s16 = int(s/2), int(s/4), int(s/8), int(s/16)     # 32, 16, 8, 4
             
             # project and reshape z 
             h1= linear(z, s16*s16*self.dim_gf*8, name='g_h1')     # (batch_size, 2*2*512)

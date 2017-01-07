@@ -51,7 +51,11 @@ class Solver(object):
         else:
             image_file = os.path.join(image_path, 'test.images.hkl')
         
-        images = hickle.load(image_file)
+        try:
+            images = hickle.load(image_file)
+        except:
+            hickle.load(images, image_file)
+            
         images = images / 127.5 - 1
         print ('finished loading mnist image dataset..!')
         return images

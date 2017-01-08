@@ -1,5 +1,7 @@
 import tensorflow as tf
 from ops import * 
+from config import * 
+
 
 class DTN(object):
     """Domain Transfer Network for unsupervised cross-domain image generation
@@ -7,7 +9,7 @@ class DTN(object):
     Construct discriminator and generator to prepare for training.
     """
     
-    def __init__(self, batch_size=100, learning_rate=0.0002, image_size=32, output_size=32, 
+    def __init__(self, batch_size=100, learning_rate=0.0001, image_size=32, output_size=32, 
                  dim_color=3, dim_fout=100, dim_df=64, dim_gf=64, dim_ff=64):
         """
         Args:
@@ -39,6 +41,7 @@ class DTN(object):
         self.d_bn1 = batch_norm(name='d_bn1')
         self.d_bn2 = batch_norm(name='d_bn2')
         self.d_bn3 = batch_norm(name='d_bn3')
+        self.d_bn4 = batch_norm(name='d_bn4')
         
         self.g_bn1 = batch_norm(name='g_bn1')
         self.g_bn2 = batch_norm(name='g_bn2')
@@ -52,7 +55,7 @@ class DTN(object):
         
         
         
-    def function_f(self, images, reuse=False):
+    def function_f(self, images, reuse=False, train=True):
         """f consistancy
         
         Args: 
@@ -60,12 +63,12 @@ class DTN(object):
             
         Returns:
             out: output vectors, of shape (batch_size, dim_f_out)
-        """
+        """    
         with tf.variable_scope('function_f', reuse=reuse):
-            h1 = lrelu(conv2d(images, self.dim_ff, name='f_h1'))                  # (batch_size, 16, 16, 64)
-            h2 = lrelu(self.d_bn1(conv2d(h1, self.dim_ff*2, name='f_h2')))        # (batch_size, 8, 8 128)
-            h3 = lrelu(self.d_bn2(conv2d(h2, self.dim_ff*4, name='f_h3')))        # (batch_size, 4, 4, 256)
-            h4 = lrelu(self.d_bn3(conv2d(h3, self.dim_ff*8, name='f_h4')))        # (batch_size, 2, 2, 512)
+            h1 = lrelu(self.f_bn1(conv2d(images, self.dim_ff, name='f_h1'), train=train))      # (batch_size, 16, 16, 64)
+            h2 = lrelu(self.f_bn2(conv2d(h1, self.dim_ff*2, name='f_h2'), train=train))        # (batch_size, 8, 8 128)
+            h3 = lrelu(self.f_bn3(conv2d(h2, self.dim_ff*4, name='f_h3'), train=train))        # (batch_size, 4, 4, 256)
+            h4 = lrelu(self.f_bn4(conv2d(h3, self.dim_ff*8, name='f_h4'), train=train))        # (batch_size, 2, 2, 512)
 
             h4 = tf.reshape(h4, [self.batch_size,-1])
             out = linear(h4, self.dim_fout, name='f_out') 
@@ -96,8 +99,8 @@ class DTN(object):
             s2, s4, s8, s16 = int(s/2), int(s/4), int(s/8), int(s/16)     # 32, 16, 8, 4
             
             # project and reshape z 
-            h1= linear(z, s16*s16*self.dim_gf*8, name='g_h1')     # (batch_size, 2*2*512)
-            h1 = tf.reshape(h1, [-1, s16, s16, self.dim_gf*8])    # (batch_size, 2, 2, 512) 
+            h1= linear(z, s16*s16*self.dim_gf*8, name='g_h1')                          # (batch_size, 2*2*512)
+            h1 = tf.reshape(h1, [-1, s16, s16, self.dim_gf*8])                         # (batch_size, 2, 2, 512) 
             h1 = relu(self.g_bn1(h1, train=train))
             
             h2 = deconv2d(h1, [self.batch_size, s8, s8, self.dim_gf*4], name='g_h2')   # (batch_size, 4, 4, 256)
@@ -128,10 +131,10 @@ class DTN(object):
         with tf.variable_scope('discriminator', reuse=reuse):
         
             # convolution layer
-            h1 = lrelu(conv2d(images, self.dim_df, name='d_h1'))                  # (batch_size, 16, 16, 64)
-            h2 = lrelu(self.d_bn1(conv2d(h1, self.dim_df*2, name='d_h2')))        # (batch_size, 8, 8, 128)
-            h3 = lrelu(self.d_bn2(conv2d(h2, self.dim_df*4, name='d_h3')))        # (batch_size, 4, 4, 256)
-            h4 = lrelu(self.d_bn3(conv2d(h3, self.dim_df*8, name='d_h4')))        # (batch_size, 2, 2, 512)
+            h1 = lrelu(self.d_bn1(conv2d(images, self.dim_df, name='d_h1')))      # (batch_size, 16, 16, 64)
+            h2 = lrelu(self.d_bn2(conv2d(h1, self.dim_df*2, name='d_h2')))        # (batch_size, 8, 8, 128)
+            h3 = lrelu(self.d_bn3(conv2d(h2, self.dim_df*4, name='d_h3')))        # (batch_size, 4, 4, 256)
+            h4 = lrelu(self.d_bn4(conv2d(h3, self.dim_df*8, name='d_h4')))        # (batch_size, 2, 2, 512)
 
             # fully connected layer
             h4 = tf.reshape(h4, [self.batch_size, -1])
@@ -149,7 +152,8 @@ class DTN(object):
         self.logits_fake = self.discriminator(self.fake_images, reuse=True)      # (batch_size,)
         self.fgf_x = self.function_f(self.fake_images, reuse=True)   # (batch_size, dim_f)
         
-        # construct generator for test phase
+        # construct generator for test phase (use moving average and variance for batch norm)
+        self.f_x = self.function_f(self.images, reuse=True, train=False)
         self.sampled_images = self.generator(self.f_x, reuse=True)                # (batch_size, 32, 32, 3)
         
         
@@ -158,8 +162,8 @@ class DTN(object):
         self.d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.logits_fake, tf.zeros_like(self.logits_fake)))           
         self.d_loss = self.d_loss_real + self.d_loss_fake
         self.g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.logits_fake, tf.ones_like(self.logits_fake)))
-        self.g_const_loss = tf.reduce_mean(tf.square(self.images - self.fake_images))  # L_TID
-        self.f_const_loss = tf.reduce_mean(tf.square(self.f_x - self.fgf_x))   # L_CONST
+        self.g_const_loss = tf.reduce_mean(tf.square(self.images - self.fake_images))   # L_TID
+        self.f_const_loss = tf.reduce_mean(tf.square(self.f_x - self.fgf_x))  * 0.15         # L_CONST
         
         # divide variables for discriminator and generator 
         t_vars = tf.trainable_variables()
@@ -172,23 +176,28 @@ class DTN(object):
             self.d_optimizer_real = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.d_loss_real, var_list=self.d_vars)
             self.d_optimizer_fake = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.d_loss_fake, var_list=self.d_vars)
             self.g_optimizer = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.g_loss, var_list=self.g_vars+self.f_vars)   
-            self.g_optimizer_const = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.g_const_loss, var_list=self.g_vars+self.f_vars)     
-            self.f_optimizer_const = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.f_const_loss, var_list=self.f_vars+self.g_vars)     
+            self.g_optimizer_const = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.g_const_loss, var_list=self.g_vars+self.f_vars)
+            self.f_optimizer_const = tf.train.AdamOptimizer(self.learning_rate, beta1=0.5).minimize(self.f_const_loss, var_list=self.g_vars+self.f_vars) 
             
             
         # summary ops for tensorboard visualization
-        tf.scalar_summary('d_loss_real', self.d_loss_real)
-        tf.scalar_summary('d_loss_fake', self.d_loss_fake)
-        tf.scalar_summary('d_loss', self.d_loss)
-        tf.scalar_summary('g_loss', self.g_loss)
-        tf.scalar_summary('g_const_loss', self.g_const_loss)
-        tf.scalar_summary('f_const_loss', self.f_const_loss)
-        tf.image_summary('original_images', self.images, max_images=6)
-        tf.image_summary('sampled_images', self.sampled_images, max_images=6)
+        scalar_summary('d_loss_real', self.d_loss_real)
+        scalar_summary('d_loss_fake', self.d_loss_fake)
+        scalar_summary('d_loss', self.d_loss)
+        scalar_summary('g_loss', self.g_loss)
+        scalar_summary('g_const_loss', self.g_const_loss)
+        scalar_summary('f_const_loss', self.f_const_loss)
+        
+        try:
+            image_summary('original_images', self.images, max_outputs=4)
+            image_summary('sampled_images', self.sampled_images, max_outputs=4)
+        except:
+            image_summary('original_images', self.images, max_images=4)
+            image_summary('sampled_images', self.sampled_images, max_images=4)
         
         for var in tf.trainable_variables():
-            tf.histogram_summary(var.op.name, var)
+            histogram_summary(var.op.name, var)
             
-        self.summary_op = tf.merge_all_summaries() 
+        self.summary_op = merge_summary() 
         
         self.saver = tf.train.Saver()

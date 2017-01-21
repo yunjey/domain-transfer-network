@@ -12,6 +12,7 @@ class Solver(object):
     def __init__(self, model, batch_size=100, pretrain_iter=10000, train_iter=2000, sample_iter=100, 
                  svhn_dir='svhn', mnist_dir='mnist', log_dir='logs', sample_save_path='sample', 
                  model_save_path='model', pretrained_model='model/svhn_model-10000', test_model='model/dtn-2000'):
+        
         self.model = model
         self.batch_size = batch_size
         self.pretrain_iter = pretrain_iter

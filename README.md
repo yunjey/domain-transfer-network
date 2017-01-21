@@ -49,11 +49,7 @@ $ python main.py --mode='eval'
 
 #### From SVHN to MNIST 
 
-![alt text](jpg/svhn_mnist_3700.gif)
-
 ![alt text](jpg/svhn_mnist_2900.gif)
-
-![alt text](jpg/svhn_mnist_2300.png)
 
 ![alt text](jpg/svhn_mnist_2900.png)
 
@@ -64,8 +60,9 @@ $ python main.py --mode='eval'
 
 #### From Photos to Emoji (in paper)
 
-
 ![alt text](jpg/emoji_1.png)
+
+![alt text](jpg/emoji_2.png)
 
 
 

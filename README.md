@@ -26,12 +26,12 @@ chmod +x download.sh
 python prepro.py
 ```
 
-#### Pretrain the model
+#### Pretrain the model f
 ```bash
 python main.py --mode='pretrain'
 ```
 
-#### Train the model
+#### Train the model G and D
 ```bash
 python main.py --mode='train'
 ```
@@ -42,5 +42,5 @@ python main.py --mode='eval'
 ```
 
 ## Results
-
+![alt text](jpg/svhn_mnist.gif)
 

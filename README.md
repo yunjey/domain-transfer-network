@@ -3,8 +3,10 @@ TensorFlow implementation of [Unsupervised Cross-Domain Image Generation.](https
 ![alt text](jpg/dtn.jpg)
 
 ## Requirements
-* Python 2.7
+* [Python 2.7](https://www.continuum.io/downloads)
 * [TensorFlow 0.12](https://github.com/tensorflow/tensorflow/tree/r0.12)
+* [Pickle](https://docs.python.org/2/library/pickle.html)
+* [SciPy](http://www.scipy.org/install.html)
 
 <br>
 

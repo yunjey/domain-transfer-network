@@ -6,40 +6,42 @@ TensorFlow implementation of [Unsupervised Cross-Domain Image Generation.](https
 * Python 2.7
 * [TensorFlow 0.12](https://github.com/tensorflow/tensorflow/tree/r0.12)
 
+<br>
 
 ## Usage
 
-Clone the repository
+#### Clone the repository
 ```bash
-git clone https://github.com/yunjey/dtn-tensorflow.git
-cd dtn-tensorflow
+$ git clone https://github.com/yunjey/dtn-tensorflow.git
+$ cd dtn-tensorflow
 ```
 
-Download the dataset
+#### Download the dataset
 ```bash
-chmod +x download.sh
-./download.sh
+$ chmod +x download.sh
+$ ./download.sh
 ```
 
-Resize MNIST dataset to 32x32 
+#### Resize MNIST dataset to 32x32 
 ```bash
-python prepro.py
+$ python prepro.py
 ```
 
-Pretrain the model f
+#### Pretrain the model f
 ```bash
-python main.py --mode='pretrain'
+$ python main.py --mode='pretrain'
 ```
 
-Train the model G and D
+#### Train the model G and D
 ```bash
-python main.py --mode='train'
+$ python main.py --mode='train'
 ```
 
-Transfer SVHN to MNIST
+#### Transfer SVHN to MNIST
 ```bash
-python main.py --mode='eval'
+$ python main.py --mode='eval'
 ```
+<br>
 
 ## Results
 ![alt text](jpg/svhn_mnist.gif)

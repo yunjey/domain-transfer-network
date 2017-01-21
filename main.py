@@ -2,7 +2,6 @@ import tensorflow as tf
 from model import DTN
 from solver import Solver
 
-
 flags = tf.app.flags
 flags.DEFINE_string('mode', 'train', "'pretrain', 'train' or 'eval'")
 FLAGS = flags.FLAGS

@@ -103,7 +103,6 @@ class DTN(object):
             self.src_images = tf.placeholder(tf.float32, [None, 32, 32, 3], 'svhn_images')
             self.trg_images = tf.placeholder(tf.float32, [None, 32, 32, 1], 'mnist_images')
             
-            
             # source domain (svhn to mnist)
             self.fx = self.content_extractor(self.src_images)
             self.fake_images = self.generator(self.fx)

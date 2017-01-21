@@ -9,7 +9,7 @@ import scipy.misc
 
 class Solver(object):
 
-    def __init__(self, model, batch_size=100, pretrain_iter=5000, train_iter=2000, sample_iter=100, 
+    def __init__(self, model, batch_size=100, pretrain_iter=10000, train_iter=2000, sample_iter=100, 
                  svhn_dir='svhn', mnist_dir='mnist', log_dir='logs', sample_save_path='sample', 
                  model_save_path='model', pretrained_model='model/svhn_model-10000', test_model='model/dtn-2000'):
         self.model = model
@@ -29,7 +29,12 @@ class Solver(object):
 
     def load_svhn(self, image_dir, split='train'):
         print ('loading svhn image dataset..')
-        image_file = 'train_32x32.mat' if split=='train' else 'test_32x32.mat'
+        
+        if self.model.mode == 'pretrain':
+            image_file = 'extra_32x32.mat' if split=='train' else 'test_32x32.mat'
+        else:
+            image_file = 'train_32x32.mat' if split=='train' else 'test_32x32.mat'
+            
         image_dir = os.path.join(image_dir, image_file)
         svhn = scipy.io.loadmat(image_dir)
         images = np.transpose(svhn['X'], [3, 0, 1, 2]) / 127.5 - 1
@@ -136,10 +141,10 @@ class Solver(object):
                 sess.run([model.g_train_op_src], feed_dict) 
                 sess.run([model.g_train_op_src], feed_dict) 
                 sess.run([model.g_train_op_src], feed_dict)
+                
                 if i % 15 == 0:
                     sess.run(model.f_train_op_src, feed_dict)
                 
-
                 if (step+1) % 10 == 0:
                     summary, dl, gl, fl = sess.run([model.summary_op_src, \
                         model.d_loss_src, model.g_loss_src, model.f_loss_src], feed_dict)
@@ -169,7 +174,6 @@ class Solver(object):
                     saver.save(sess, os.path.join(self.model_save_path, 'dtn'), global_step=step+1)
                     print ('model/dtn-%d saved' %(step+1))
                 
-
     def eval(self):
         # build model
         model = self.model

@@ -33,7 +33,6 @@ class DTN(object):
                     if self.mode == 'pretrain':
                         net = slim.conv2d(net, 10, [1, 1], padding='VALID', scope='out')
                         net = slim.flatten(net)
-                        
                     return net
                 
     def generator(self, inputs, reuse=False):
@@ -106,12 +105,11 @@ class DTN(object):
             
             
             # source domain (svhn to mnist)
-            with tf.name_scope('model_for_source_domain'):
-                self.fx = self.content_extractor(self.src_images)
-                self.fake_images = self.generator(self.fx)
-                self.logits = self.discriminator(self.fake_images)
-                self.fgfx = self.content_extractor(self.fake_images, reuse=True)
-            
+            self.fx = self.content_extractor(self.src_images)
+            self.fake_images = self.generator(self.fx)
+            self.logits = self.discriminator(self.fake_images)
+            self.fgfx = self.content_extractor(self.fake_images, reuse=True)
+
             # loss
             self.d_loss_src = slim.losses.sigmoid_cross_entropy(self.logits, tf.zeros_like(self.logits))
             self.g_loss_src = slim.losses.sigmoid_cross_entropy(self.logits, tf.ones_like(self.logits))
@@ -128,10 +126,9 @@ class DTN(object):
             f_vars = [var for var in t_vars if 'content_extractor' in var.name]
             
             # train op
-            with tf.name_scope('source_train_op'):
-                self.d_train_op_src = slim.learning.create_train_op(self.d_loss_src, self.d_optimizer_src, variables_to_train=d_vars)
-                self.g_train_op_src = slim.learning.create_train_op(self.g_loss_src, self.g_optimizer_src, variables_to_train=g_vars)
-                self.f_train_op_src = slim.learning.create_train_op(self.f_loss_src, self.f_optimizer_src, variables_to_train=f_vars)
+            self.d_train_op_src = slim.learning.create_train_op(self.d_loss_src, self.d_optimizer_src, variables_to_train=d_vars)
+            self.g_train_op_src = slim.learning.create_train_op(self.g_loss_src, self.g_optimizer_src, variables_to_train=g_vars)
+            self.f_train_op_src = slim.learning.create_train_op(self.f_loss_src, self.f_optimizer_src, variables_to_train=f_vars)
             
             # summary op
             d_loss_src_summary = tf.summary.scalar('src_d_loss', self.d_loss_src)
@@ -144,11 +141,10 @@ class DTN(object):
                                                     sampled_images_summary])
             
             # target domain (mnist)
-            with tf.name_scope('model_for_target_domain'):
-                self.fx = self.content_extractor(self.trg_images, reuse=True)
-                self.reconst_images = self.generator(self.fx, reuse=True)
-                self.logits_fake = self.discriminator(self.reconst_images, reuse=True)
-                self.logits_real = self.discriminator(self.trg_images, reuse=True)
+            self.fx = self.content_extractor(self.trg_images, reuse=True)
+            self.reconst_images = self.generator(self.fx, reuse=True)
+            self.logits_fake = self.discriminator(self.reconst_images, reuse=True)
+            self.logits_real = self.discriminator(self.trg_images, reuse=True)
             
             # loss
             self.d_loss_fake_trg = slim.losses.sigmoid_cross_entropy(self.logits_fake, tf.zeros_like(self.logits_fake))
@@ -161,16 +157,10 @@ class DTN(object):
             # optimizer
             self.d_optimizer_trg = tf.train.AdamOptimizer(self.learning_rate)
             self.g_optimizer_trg = tf.train.AdamOptimizer(self.learning_rate)
-            
-            t_vars = tf.trainable_variables()
-            d_vars = [var for var in t_vars if 'discriminator' in var.name]
-            g_vars = [var for var in t_vars if 'generator' in var.name]
-            f_vars = [var for var in t_vars if 'content_extractor' in var.name]
 
             # train op
-            with tf.name_scope('target_train_op'):
-                self.d_train_op_trg = slim.learning.create_train_op(self.d_loss_trg, self.d_optimizer_trg, variables_to_train=d_vars)
-                self.g_train_op_trg = slim.learning.create_train_op(self.g_loss_trg, self.g_optimizer_trg, variables_to_train=g_vars)
+            self.d_train_op_trg = slim.learning.create_train_op(self.d_loss_trg, self.d_optimizer_trg, variables_to_train=d_vars)
+            self.g_train_op_trg = slim.learning.create_train_op(self.g_loss_trg, self.g_optimizer_trg, variables_to_train=g_vars)
             
             # summary op
             d_loss_fake_trg_summary = tf.summary.scalar('trg_d_loss_fake', self.d_loss_fake_trg)

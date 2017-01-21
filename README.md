@@ -47,7 +47,7 @@ $ python main.py --mode='eval'
 
 ## Results
 
-#### SVHN to MNIST Generation
+#### From SVHN to MNIST 
 
 ![alt text](jpg/svhn_mnist_3700.gif)
 
@@ -61,7 +61,13 @@ $ python main.py --mode='eval'
 
 ![alt text](jpg/svhn_mnist_5300.png)
 
-#### 
+
+#### From Photos to Emoji (in paper)
+
+
+![alt text](jpg/emoji_1.png)
+
+
 
 
 

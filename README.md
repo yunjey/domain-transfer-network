@@ -1,7 +1,8 @@
 # Domain Transfer Network (DTN) 
-<b>(Work in progress)</b>Domain Transfer Network. TensorFlow implementation of [Unsupervised Cross-Domain Image Generation]
-
+TensorFlow implementation of [Unsupervised Cross-Domain Image Generation.](https://arxiv.org/abs/1611.02200)
 
 ![alt text](jpg/dtn.jpg)
+
+## Usage
 
 

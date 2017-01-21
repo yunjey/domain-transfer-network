@@ -45,9 +45,23 @@ $ python main.py --mode='eval'
 ```
 <br>
 
-## Results: SVHN to MNIST Generation
+## Results
+
+#### SVHN to MNIST Generation
+
 ![alt text](jpg/svhn_mnist_3700.gif)
 
 ![alt text](jpg/svhn_mnist_2900.gif)
+
+![alt text](jpg/svhn_mnist_2300.png)
+
+![alt text](jpg/svhn_mnist_2900.png)
+
+![alt text](jpg/svhn_mnist_3700.png)
+
+![alt text](jpg/svhn_mnist_5300.png)
+
+#### 
+
 
 
